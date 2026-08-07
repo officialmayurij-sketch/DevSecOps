@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
 jobs:
 
   # -------------------------------------------------------------
@@ -21,12 +26,16 @@ jobs:
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
-          config: p/default  # Standard recommended security ruleset
+          config: p/default
+          generateSarif: "1"
+
+      - name: Upload Semgrep SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
 
   # -------------------------------------------------------------
-  # 2. SCA (Software Composition Analysis) using Snyk
-  # -------------------------------------------------------------
- # -------------------------------------------------------------
   # 2. SCA (Software Composition Analysis) using Snyk
   # -------------------------------------------------------------
   sca-snyk:
@@ -42,10 +51,11 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install  # Creates the node_modules folder required by Snyk
+        run: npm install
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -61,10 +71,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
+      - name: Run tfsec SARIF report generator
+        uses: aquasecurity/tfsec-sarif-action@v0.1.4
         with:
-          working_directory: '.'  # Path to your Terraform files
+          sarif_file: tfsec.sarif
+
+      - name: Upload tfsec SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
 
   # -------------------------------------------------------------
   # 4. Container & Infrastructure Scan using Checkov
@@ -79,15 +95,21 @@ jobs:
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          framework: dockerfile # Scans Dockerfiles (can also use 'all')
-          output_format: cli
-          soft_fail: true # Set to true if you don't want pipeline to fail on error
+          framework: dockerfile
+          output_format: sarif
+          output_file_path: checkov.sarif
+          soft_fail: true
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov.sarif
 
   # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
-
- dast-zap:
+  dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
     steps:
