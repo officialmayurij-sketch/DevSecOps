@@ -130,19 +130,7 @@ jobs:
   # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
-  # -------------------------------------------------------------
-  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
-  # -------------------------------------------------------------
-# -------------------------------------------------------------
-  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
-  # -------------------------------------------------------------
- # -------------------------------------------------------------
-  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
-  # -------------------------------------------------------------
-  # -------------------------------------------------------------
-  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
-  # -------------------------------------------------------------
-  dast-zap:
+ dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
     steps:
@@ -165,6 +153,7 @@ jobs:
           target: 'http://localhost:3000'
           fail_action: false
           allow_issue_writing: false
+          artifact_name: 'zap-scan-report'
           cmd_options: '-I' # Prevents ZAP from exiting with code 3 on warnings
 
       - name: Upload ZAP Report
