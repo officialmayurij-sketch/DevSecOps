@@ -166,6 +166,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-baseline-report
-          path: report_html.html
+          name: zap-report-${{ github.run_id }}
+          path: zap_report.html
           if-no-files-found: ignore
