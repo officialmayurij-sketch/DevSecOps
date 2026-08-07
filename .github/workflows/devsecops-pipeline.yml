@@ -156,12 +156,13 @@ jobs:
           target: 'http://localhost:3000'
           fail_action: false
           allow_issue_writing: false
-          cmd_options: '-I' # Prevents ZAP from exiting with code 3 on warnings
+          cmd_options: '-I'
+          artifact_name: '' # Disables internal legacy artifact upload to prevent 400 Bad Request
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-reports
+          name: zap-baseline-report
           path: report_html.html
           if-no-files-found: ignore
