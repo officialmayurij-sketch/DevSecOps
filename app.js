@@ -1,23 +1,21 @@
 const express = require('express');
+const { exec } = require('child_process');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Welcome to the DevSecOps Sample Web Application!',
-    timestamp: new Date().toISOString()
-  });
+// Hardcoded Secret (Triggers Semgrep Secret Scan)
+const AWS_SECRET_KEY = "AKIAIOSFODNN7EXAMPLE_SECRET_KEY";
+
+app.get('/ping', (req, res) => {
+    const host = req.query.host;
+
+    // Command Injection vulnerability (Triggers Semgrep SAST Scan)
+    exec(`ping -c 1 ${host}`, (error, stdout, stderr) => {
+        if (error) {
+            res.status(500).send(error.message);
+            return;
+        }
+        res.send(stdout);
+    });
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'UP' });
-});
-
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-module.exports = app;
+app.listen(3000, () => console.log('App running on port 3000'));
