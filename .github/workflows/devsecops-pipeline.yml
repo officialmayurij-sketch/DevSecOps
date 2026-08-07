@@ -38,7 +38,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          command: code test
+          command: test
 
   # -------------------------------------------------------------
   # 3. Infrastructure as Code (IaC) Scan using tfsec
