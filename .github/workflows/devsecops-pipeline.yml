@@ -133,6 +133,9 @@ jobs:
 # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
+  # -------------------------------------------------------------
+  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
+  # -------------------------------------------------------------
   dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
@@ -157,7 +160,7 @@ jobs:
           fail_action: false
           allow_issue_writing: false
           cmd_options: '-I'
-          artifact_name: '' # Disables internal legacy artifact upload to prevent 400 Bad Request
+          token: '' # Disables internal legacy artifact upload to stop 400 Bad Request errors
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
