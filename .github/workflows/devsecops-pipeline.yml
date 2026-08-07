@@ -86,15 +86,17 @@ jobs:
   # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
+ # -------------------------------------------------------------
+  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
+  # -------------------------------------------------------------
   dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
-    # DAST requires the app to be running first
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Optional: Build and run your application container locally first so ZAP can scan it
+      # Build and run your target application container first
       - name: Build and start app
         run: |
           docker build -t my-app .
@@ -105,4 +107,12 @@ jobs:
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://localhost:3000' # Target URL of your running application
-          fail_action: false # Set to true to fail build on high-risk vulnerabilities
+          sarif_file: zap.sarif
+          fail_action: false
+          allow_issue_writing: false # Prevents permission errors when creating GitHub issues
+
+      - name: Upload ZAP SARIF to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() # Uploads findings even if vulnerabilities were discovered
+        with:
+          sarif_file: zap.sarif
