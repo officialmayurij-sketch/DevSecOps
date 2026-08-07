@@ -136,6 +136,9 @@ jobs:
 # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
+ # -------------------------------------------------------------
+  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
+  # -------------------------------------------------------------
   dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
@@ -148,6 +151,11 @@ jobs:
           docker build -t my-app .
           docker run -d -p 3000:3000 my-app
           sleep 10
+
+      # Fix folder permissions so ZAP container can write files to workspace
+      - name: Create and set workspace permissions for ZAP
+        run: |
+          sudo chmod -R 777 ${{ github.workspace }}
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
