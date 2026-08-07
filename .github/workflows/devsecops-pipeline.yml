@@ -143,29 +143,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and start app
-        run: |
-          docker build -t my-app .
-          docker run -d -p 3000:3000 my-app
-          sleep 10
-
+# Set up workspace permissions if ZAP writes as a non-root user inside Docker
       - name: Create and set workspace permissions for ZAP
         run: |
-          sudo chmod -R 777 ${{ github.workspace }}
-
+          mkdir -p zap
+          chmod 777 zap
+      # Run the ZAP Baseline Scan
       - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.14.0
         with:
-          target: 'http://localhost:3000'
-          fail_action: false
-          allow_issue_writing: false
-          cmd_options: '-I'
-          token: '' # Disables internal legacy artifact upload to stop 400 Bad Request errors
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'https://example.com' # Replace with your target application URL
+          cmd_options: '-a'
 
+          # Upload ZAP Report as an Artifact
       - name: Upload ZAP Report
+        if: always() # Upload even if scan finds warnings or errors
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: zap-report-${{ github.run_id }}
-          path: zap_report.html
-          if-no-files-found: ignore
+          name: zap-scan-report # Must use dashes/underscores without invalid API characters
+          path: |
+            zap/report_html.html
+            zap/report_json.json
+            zap/report_md.md
