@@ -16,7 +16,7 @@ jobs:
   # -------------------------------------------------------------
   # 1. SAST (Static Application Security Testing) using Semgrep
   # -------------------------------------------------------------
- # -------------------------------------------------------------
+# -------------------------------------------------------------
   # 1. SAST (Static Application Security Testing) using Semgrep
   # -------------------------------------------------------------
   sast-semgrep:
@@ -32,19 +32,30 @@ jobs:
           config: p/default
           generateSarif: "1"
 
-      # Create an empty dummy file if semgrep.sarif wasn't created to prevent step failures
-      - name: Ensure SARIF file exists
+      - name: Check if SARIF contains findings
+        id: check_sarif
         run: |
-          if [ ! -f semgrep.sarif ]; then
-            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > semgrep.sarif
+          if [ -f semgrep.sarif ]; then
+            # Count the number of results in the SARIF file using node/jq
+            RESULTS_COUNT=$(node -e '
+              try {
+                const sarif = require("./semgrep.sarif");
+                const count = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) ? sarif.runs[0].results.length : 0;
+                console.log(count);
+              } catch(e) {
+                console.log(0);
+              }
+            ')
+            echo "findings_count=$RESULTS_COUNT" >> $GITHUB_OUTPUT
+          else
+            echo "findings_count=0" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload Semgrep SARIF
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: always() && steps.check_sarif.outputs.findings_count != '0'
         with:
           sarif_file: semgrep.sarif
-
   # -------------------------------------------------------------
   # 2. SCA (Software Composition Analysis) using Snyk
   # -------------------------------------------------------------
@@ -122,6 +133,9 @@ jobs:
   # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
   # -------------------------------------------------------------
+# -------------------------------------------------------------
+  # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
+  # -------------------------------------------------------------
   dast-zap:
     name: OWASP ZAP Web Application Scan (DAST)
     runs-on: ubuntu-latest
@@ -142,10 +156,10 @@ jobs:
           fail_action: false
           allow_issue_writing: false
 
-      - name: Upload ZAP Report
+      - name: Upload ZAP Scan Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-baseline-report
+          name: zap-reports
           path: report_html.html
           if-no-files-found: ignore
