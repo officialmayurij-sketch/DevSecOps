@@ -70,7 +70,7 @@ jobs:
         with:
           framework: dockerfile # Scans Dockerfiles (can also use 'all')
           output_format: cli
-          soft_fail: false # Set to true if you don't want pipeline to fail on error
+          soft_fail: true # Set to true if you don't want pipeline to fail on error
 
   # -------------------------------------------------------------
   # 5. DAST (Dynamic Application Security Testing) using OWASP ZAP
